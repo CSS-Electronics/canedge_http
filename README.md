@@ -1,32 +1,50 @@
 # CANedge HTTP
+Python module for accessing the [CANedge2](https://www.csselectronics.com/screen/product/can-lin-logger-wifi-canedge2/language/en) via HTTP. The CANedge2 HTTP interface can e.g. be used to automatically poll and then delete log files from the CANedge2. 
 
-This repository demonstrates how the [CANedge2](https://www.csselectronics.com/screen/product/can-lin-logger-wifi-canedge2/language/en) can be accessed via HTTP using Python.
-
-The CANedge HTTP interface can e.g. be used to automatically poll and then delete log files from the CANedge2. 
-
-## Project structure
-- `canedge_http.py`: CANedge HTTP class
-- `canedge_http_example.py` demonstrates how the CANedge HTTP class can be used.
+The module supports download, deletion, and listing of files on the CANedge2.
 
 ## Installation
-
-Tested with Python 3.8.
-
-## Example of usage 
-
-```python
-from pathlib import Path
-from canedge_http import CANedgeHTTP
-
-# Configure http connection to CANedge
-ce = CANedgeHTTP(host="192.168.0.128")
-
-# Connect
-with ce.connect():
-
-    # Loop files in root directory
-    for elm, is_dir in ce.list(path=Path("/"), recursive=True):
-        print(elm.as_posix())
+```
+pip install canedge_http
 ```
 
-See `canedge_http_example.py` for at more comprehensive example.
+## Usage examples
+See `example_canedge_http.py` for a more comprehensive example.
+
+### Import
+```python
+from canedge_http import CANedgeHTTP
+```
+
+### Connect
+```python
+with CANedgeHTTP(host="192.168.0.128").connect() as cnt:
+    ...
+```
+
+### LIST
+```python
+for elm, is_dir in cnt.list(path=Path("/"), recursive=True):
+   ...
+```
+
+### Download
+Download takes a file-like object
+
+```python
+f = io.BytesIO()
+res = cnt.download(elm, f)
+```
+or
+```python
+with open("somefile", 'wb') as f:
+    res = cnt.download(elm, f)
+```
+
+### Delete
+```python
+res = cnt.delete(elm)
+```
+
+## Test
+Tests are implemented using pytest and can be found in `test_canedge_http.py`.

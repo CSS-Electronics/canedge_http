@@ -39,6 +39,7 @@ class CANedgeHTTP:
 
         self._conn.request("LIST", path.as_posix())
         list_response = self._conn.getresponse()
+
         if list_response.status == 200:
 
             # Get response body

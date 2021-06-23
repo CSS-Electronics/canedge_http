@@ -1,0 +1,2 @@
+include versioneer.py
+include CANedge_HTTP/_version.py

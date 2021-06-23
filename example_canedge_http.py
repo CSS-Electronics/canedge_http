@@ -5,16 +5,11 @@ from canedge_http import CANedgeHTTP
 
 if __name__ == "__main__":
 
-    DEVICE_IP = "192.168.0.128"
-
-    # Configure http connection to CANedge
-    ce = CANedgeHTTP(host=DEVICE_IP)
-
     # Connect
-    with ce.connect():
+    with CANedgeHTTP(host="192.168.1.128").connect() as cnt:
 
         # Loop device
-        for elm, is_dir in ce.list(path=Path("/"), recursive=True):
+        for elm, is_dir in cnt.list(path=Path("/"), recursive=True):
 
             print(elm.as_posix())
 
@@ -27,7 +22,7 @@ if __name__ == "__main__":
 
                 # Download json file to RAM
                 f = io.BytesIO()
-                download_res = ce.download(elm, f)
+                download_res = cnt.download(elm, f)
 
                 if download_res is True:
                     print(json.loads(f.getvalue()))
@@ -41,8 +36,8 @@ if __name__ == "__main__":
 
                 # Download log file to disk
                 with open(file_local, 'wb') as f:
-                    download_res = ce.download(elm, f)
+                    download_res = cnt.download(elm, f)
 
                     # Delete file
                     if download_res is True:
-                        ce.delete(elm)
+                        cnt.delete(elm)
