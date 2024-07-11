@@ -1,5 +1,5 @@
 # CANedge HTTP
-Python module for accessing the [CANedge2](https://www.csselectronics.com/screen/product/can-lin-logger-wifi-canedge2/language/en) via HTTP. The CANedge2 HTTP interface can e.g. be used to automatically poll and then delete log files from the CANedge2. 
+Python module for accessing the [CANedge2](https://www.csselectronics.com/products/can-bus-data-logger-wifi-canedge2) via HTTP. The CANedge2 HTTP interface can e.g. be used to automatically poll and then delete log files from the CANedge2. 
 
 The module supports download, deletion, and listing of files on the CANedge2.
 
@@ -12,7 +12,9 @@ pip install canedge_http
 See `example_canedge_http.py` for a more comprehensive example.
 
 ### Import
+
 ```python
+from canedge_http import CANedgeHTTP
 from canedge_http import CANedgeHTTP
 ```
 
