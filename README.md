@@ -8,8 +8,8 @@ The module supports download, deletion, and listing of files on the CANedge.
 pip install canedge_http
 ```
 
-## Demos
-- `demo_download_log_files.py` download log files filtered by start and end-time. Run ``python demo_download_log_files.py --help`` for information on usage.
+## Tools
+- `ce_http_downloader`: Download log files filtered by start and end-time. Run ``ce_http_downloader --help`` for information on usage.
 
 ## Usage
 

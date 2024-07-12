@@ -47,7 +47,7 @@ def download_log_files(endpoint: str, password: str, start_datetime: datetime, e
             download_res = http.download(elm["path"], f)
         print("OK" if download_res is True else "Fail")
 
-if __name__ == "__main__":
+def main():
 
     def valid_datetime_type(arg_datetime_str):
         try:
@@ -70,3 +70,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     download_log_files(args.endpoint, args.password, args.start_datetime, args.end_datetime)
+
+if __name__ == "__main__":
+    main()

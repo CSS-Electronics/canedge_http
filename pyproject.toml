@@ -6,7 +6,8 @@ build-backend = "hatchling.build"
 name = "CANedge-HTTP"
 version = "0.0.2"
 authors = [
-    { name="CSS Electronics", email="contact@csselectronics.com" },
+    { name="CSS Electronics" },
+    { email="contact@csselectronics.com" },
 ]
 description = "Python module for accessing CANEdge filesystem via HTTP"
 readme = "README.md"
@@ -18,10 +19,15 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
 ]
-dependencies = []
+dependencies = [
+    'requests >= 2.32.3',
+]
+
+[project.scripts]
+ce_http_downloader = "canedge_http.tools.tool_download_log_files:main"
 
 [project.urls]
-"Homepage" = "https://https://www.csselectronics.com/"
+"Homepage" = "https://www.csselectronics.com/"
 
 [tool.hatch.version]
 source = "vcs"
