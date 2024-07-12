@@ -9,7 +9,7 @@ pip install canedge_http
 ```
 
 ## Demos
-- `demo_download_log_files.py` download log files filtered by start and end-time
+- `demo_download_log_files.py` download log files filtered by start and end-time. Run ``python demo_download_log_files.py --help`` for information on usage.
 
 ## Usage
 

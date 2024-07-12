@@ -55,8 +55,15 @@ if __name__ == "__main__":
         except ValueError:
             raise argparse.ArgumentTypeError("Invalid datetime")
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("endpoint", type=str, help="CANedge HTTP endpoint, e.g. 192.168.1.100 or 192.168.1.100:80")
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawTextHelpFormatter,
+        description="Examples:\n"
+                    "- python demo_download_log_files.py http://192.168.1.143\n"
+                    "- python demo_download_log_files.py http://192.168.1.143:5000\n"
+                    "- python demo_download_log_files.py http://192.168.1.143 --password secretpassword\n"
+                    "- python demo_download_log_files.py http://192.168.1.143 --start-datetime \"2020-01-01 12:00\" --end-datetime \"2020-01-30 20:00\"\n"
+    )
+    parser.add_argument("endpoint", type=str, help="CANedge HTTP endpoint, e.g. http://192.168.1.100 or http://192.168.1.100:80")
     parser.add_argument("--start-datetime", type=valid_datetime_type, default="1900-01-01 00:00", help="Log file start time, e.g. \"2020-01-01 12:00\"")
     parser.add_argument("--end-datetime", type=valid_datetime_type, default="2900-01-01 00:00", help="Log file end time, e.g. \"2020-01-30 20:00\"")
     parser.add_argument("--password", type=str, default=None, help="HTTP authentication password")
