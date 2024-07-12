@@ -1,52 +1,73 @@
 # CANedge HTTP
-Python module for accessing the [CANedge2](https://www.csselectronics.com/products/can-bus-data-logger-wifi-canedge2) via HTTP. The CANedge2 HTTP interface can e.g. be used to automatically poll and then delete log files from the CANedge2. 
+Python module for accessing the [CANedge](https://www.csselectronics.com/pages/can-bus-hardware-products) via HTTP. The CANedge HTTP interface can e.g. be used to automatically poll and then delete log files stored on the CANedge. 
 
-The module supports download, deletion, and listing of files on the CANedge2.
+The module supports download, deletion, and listing of files on the CANedge.
 
 ## Installation
 ```
 pip install canedge_http
 ```
 
-## Usage examples
-See `example_canedge_http.py` for a more comprehensive example.
+## Demos
+- `demo_download_log_files.py` download log files filtered by start and end-time
+
+## Usage
 
 ### Import
-
 ```python
-from canedge_http import CANedgeHTTP
 from canedge_http import CANedgeHTTP
 ```
 
-### Connect
+### Construct
+
 ```python
-with CANedgeHTTP(host="192.168.0.128").connect() as cnt:
-    ...
+http = CANedgeHTTP("192.168.1.100")
 ```
 
-### LIST
+### Device ID
+
 ```python
-for elm, is_dir in cnt.list(path=Path("/"), recursive=True):
+http.device_id
+```
+Result example:
+```python
+'AABBCCDD'
+```
+
+### Permission
+
+```python
+http.permission
+```
+Result example:
+```python
+'OPTIONS, GET, HEAD, PUT, DELETE'
+```
+
+### List files
+```python
+for elm in http.list(path="/", recursive=True):
    ...
+```
+Result example (elm):
+```python
+{'path': '/device.json', 'is_dir': False, 'lastWritten': datetime.datetime(2024, 7, 12, 5, 3, 12, tzinfo=datetime.timezone.utc), 'size': 601}
 ```
 
 ### Download
-Download takes a file-like object
+Download takes a file-like object, e.g.
 
 ```python
 f = io.BytesIO()
-res = cnt.download(elm, f)
+http.download("/device.json", f)
 ```
 or
 ```python
-with open("somefile", 'wb') as f:
-    res = cnt.download(elm, f)
+with open("00000001.MF4", "wb") as f:
+    http.download("/LOG/AABBCCDD/00000001/00000001.MF4", f)
 ```
 
 ### Delete
 ```python
-res = cnt.delete(elm)
+http.delete("/LOG/AABBCCDD/00000001/00000001.MF4")
 ```
-
-## Test
-Tests are implemented using pytest and can be found in `test_canedge_http.py`.

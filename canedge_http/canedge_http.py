@@ -1,110 +1,74 @@
-import http.client
-import json
-from contextlib import contextmanager
-from io import IOBase
-from pathlib import Path
-from time import sleep
-from typing import Tuple
+import requests
+from datetime import datetime, timezone
+from typing import BinaryIO
 from urllib.parse import urljoin
+from requests.auth import HTTPDigestAuth
 
 
 class CANedgeHTTP:
 
-    @staticmethod
-    def request_and_response(conn: http.client.HTTPConnection, method: str, path: Path):
-        """
-        Helper function to reliably perform a request and receive a response from the CANedge (limited to one socket).
-        If the CANedge is busy, it closes the socket without data.
-        """
-        status = None
-        payload = None
-        for retry in range(1, 5):
-            conn.request(method, path.as_posix())
-            try:
-                list_response = conn.getresponse()
-                status = list_response.status
-                payload = list_response.read()
-            except http.client.RemoteDisconnected:
-                pass
-            finally:
-                # Allow the socket time to completely close
-                sleep(retry ** 2 * 0.1)
-                if status is not None and payload is not None:
-                    break
+    def __init__(self, url: str, password: str = None):
+        """Create a new instance of CANedgeHTTP"""
 
-        return status, payload
+        self._api = urljoin( url,"api/")
+        self._device_id = None
+        self._permission = None
+        self._auth = requests.auth.HTTPDigestAuth(username="user", password=password) if password is not None else None
 
-    def __init__(self, host: str, port: int = 80):
-        """Create a new instance of CANedgeHTTP.
-        
-        :param host: Remote endpoint (hostname or ip)
-        :param port: Remote port
-        """
-        self._host = host
-        self._port = port
-        self._conn = None
+        r = requests.head(self._api, timeout=5, auth=self._auth)
+        if r.status_code == 200 and "Device-id" in r.headers:
+            self._device_id = r.headers["Device-id"]
+        else:
+            raise ValueError(r.reason)
 
-    @contextmanager
-    def connect(self) -> http.client.HTTPConnection:
-        try:
-            self._conn = http.client.HTTPConnection(self._host, self._port, timeout=10)
-            self._conn.set_debuglevel(1)
-            yield self
-        finally:
-            self._conn.close()
-        pass
+        r = requests.options(self._api, timeout=5, auth=self._auth)
+        if r.status_code == 200 and "Allow" in r.headers:
+            self._permission = r.headers["Allow"]
+        else:
+            raise ValueError(r.reason)
 
-    def list(self, path: Path, recursive: bool = False) -> Tuple[Path, bool]:
-        """List files on device as iterator
-        
-        :param path: Path
-        :param recursive: True to list recursively
-        :return: Returns path and if path is directory as a tuple
-        """
-        status, payload = self.request_and_response(self._conn, "LIST", path)
-        if status == 200:
+    @property
+    def device_id(self) -> str:
+        return self._device_id
 
-            # Parse payload
-            list_res = json.loads(payload.decode())
+    @property
+    def permission(self) -> str:
+        return self._permission
+
+    def list(self, path: str = "/", recursive: bool = False) -> dict:
+        """List files on device as iterator"""
+        path = path[1:] if path.startswith("/") else path
+
+        r = requests.get(urljoin(self._api, path), auth=self._auth)
+        if r.status_code == 200:
+
+            list_res = r.json()
 
             # Loop elements in path
-            for elm in list_res["files"]:
-                path = Path(urljoin(list_res['path'], elm['name']))
-                if elm["isDirectory"] == 1:
-                    yield path, True
-                    if recursive is True:
-                        # Recursively list files in dir
+            for elm in list_res.get("files", []):
+
+                path = urljoin(list_res["path"], elm["name"])
+
+                yield {"path": path,
+                        "is_dir": True if elm["isDirectory"] == 1 else False,
+                        "lastWritten": datetime.utcfromtimestamp(elm["lastWritten"]).replace(tzinfo=timezone.utc),
+                        "size": elm["size"]}
+
+                if elm["isDirectory"] == 1 and recursive is True:
                         yield from self.list(path=path, recursive=recursive)
-                else:
-                    # Return file path
-                    yield path, False
 
-    def download(self, path: Path, f: IOBase) -> bool:
-        """Download path
+    def download(self, path: str, f: BinaryIO) -> bool:
+        """Download path"""
+        path = path[1:] if path.startswith("/") else path
 
-        :param path: Path to resource
-        :param f: a file-like object
-        :return: True if resource downloaded successfully
-        """
-        res = False
+        r = requests.get(urljoin(self._api, path), auth=self._auth)
+        if r.status_code == 200:
+            f.write(r.content)
+        return True if r.status_code == 200 else False
 
-        status, payload = self.request_and_response(self._conn, "GET", path)
-        if status == 200:
-            f.write(payload)
-            res = True
-        return res
+    def delete(self, path: str) -> bool:
+        """Delete path"""
+        path = path[1:] if path.startswith("/") else path
 
-    def delete(self, path: Path) -> bool:
-        """Delete path
-
-        :param path: Path to resource
-        :return: True if resource deleted successfully
-        """
-        res = False
-
-        status, payload = self.request_and_response(self._conn, "DELETE", path)
-        if status == 200:
-            res = True
-        return res
-    
-    pass
+        r = requests.delete(urljoin(self._api, path), auth=self._auth)
+        return True if r.status_code == 200 else False
