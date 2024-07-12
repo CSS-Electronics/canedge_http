@@ -21,7 +21,7 @@ from canedge_http import CANedgeHTTP
 ### Construct
 
 ```python
-http = CANedgeHTTP("192.168.1.100")
+http = CANedgeHTTP("http://192.168.1.100")
 ```
 
 ### Device ID
